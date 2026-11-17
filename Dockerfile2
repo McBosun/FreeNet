@@ -1,0 +1,6 @@
+FROM freeradius/freeradius-server:latest-3.2
+COPY sql /etc/freeradius/mods-available/sql
+COPY clients.conf /etc/freeradius/clients.conf
+RUN ln -sf ../mods-available/sql /etc/freeradius/mods-enabled/sql \
+ && sed -i -E 's/^(\s*)#\s*sql\s*$/\1sql/' /etc/freeradius/sites-enabled/default
+CMD ["freeradius","-f","-X"]

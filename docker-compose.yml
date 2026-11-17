@@ -1,0 +1,20 @@
+services:
+  db:
+    image: postgres:16
+    environment: {POSTGRES_DB: freenet, POSTGRES_USER: freenet, POSTGRES_PASSWORD: "${DB_PASS}"}
+    volumes: ["pgdata:/var/lib/postgresql/data", "./schema.sql:/docker-entrypoint-initdb.d/schema.sql"]
+  api:
+    build: {context: ., dockerfile: Dockerfile1}
+    environment:
+      DATABASE_URL: "postgres://freenet:${DB_PASS}@db:5432/freenet"
+      JWT_SECRET: "${JWT_SECRET}"
+      ADMIN_KEY: "${ADMIN_KEY}"
+      PAYSTACK_SECRET: "${PAYSTACK_SECRET}"
+    ports: ["3000:3000"]
+    depends_on: [db]
+  radius:
+    build: {context: ./radius, dockerfile: Dockerfile2}
+    environment: {DB_PASS: "${DB_PASS}"}
+    ports: ["1812:1812/udp", "1813:1813/udp"]
+    depends_on: [db]
+volumes: {pgdata: {}}

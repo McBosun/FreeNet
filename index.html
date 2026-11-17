@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FreeNet WiFi</title><style>
+body{font:16px/1.5 system-ui,sans-serif;max-width:440px;margin:0 auto;padding:20px;background:#eef4f1;color:#10302f}
+.c{background:#fff;border-radius:14px;padding:18px;margin-bottom:14px;border:1px solid #d3e0db}
+input,button{width:100%;padding:12px;border-radius:10px;font:inherit;margin:4px 0 8px;border:1px solid #d3e0db}
+button{background:#0d7c66;color:#fff;border:0;font-weight:700;cursor:pointer}button.hi{background:#f2a900;color:#10302f}
+video{width:100%;border-radius:10px}#err{color:#b42318}</style></head><body>
+<h1>FreeNet WiFi</h1><p id="err" role="alert"></p>
+<div class="c" id="login"><p>Sign in with your phone number to get online.</p><input id="ph" type="tel" placeholder="0803 000 0000"><button onclick="signIn()">Sign in</button></div>
+<div class="c" id="home" hidden><button class="hi" onclick="startAd()">Watch ad, get 30 free minutes</button>
+<input id="vc" placeholder="Voucher code"><button onclick="redeem()">Redeem voucher</button></div>
+<div class="c" id="ad" hidden><b id="brand"></b><p id="msg"></p><video id="vid" playsinline muted autoplay hidden></video><button id="claim" disabled></button></div>
+<form id="go" method="post" hidden><input name="username"><input name="password"><input name="dst"></form>
+<script>
+const Q=new URLSearchParams(location.search);let T=sessionStorage.getItem('t')||'';
+const $=i=>document.getElementById(i),err=m=>$('err').textContent=m||'';
+async function api(p,b){const r=await fetch('/api/'+p,{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+T},body:JSON.stringify(b||{})});
+  const j=await r.json();if(!r.ok)throw new Error(j.error||'Something went wrong');return j}
+function show(){$('login').hidden=!!T;$('home').hidden=!T}
+async function signIn(){try{err();const j=await api('login',{phone:$('ph').value});T=j.token;sessionStorage.setItem('t',T);show()}catch(e){err(e.message)}}
+function connect(g){const f=$('go');f.action=Q.get('login')||'http://192.168.88.1/login';
+  f.username.value=g.username;f.password.value=g.password;f.dst.value=Q.get('dst')||'https://www.google.com';f.submit()}
+async function startAd(){try{err();const a=await api('ad/start');$('home').hidden=true;$('ad').hidden=false;
+  $('brand').textContent=a.brand;$('msg').textContent=a.msg;if(a.video_url){$('vid').src=a.video_url;$('vid').hidden=false}
+  let n=a.seconds;const b=$('claim');b.disabled=true;b.textContent='Claim in '+n+'s';
+  const t=setInterval(()=>{n--;if(n>0)b.textContent='Claim in '+n+'s';else{clearInterval(t);b.disabled=false;b.textContent='Claim 30 free minutes';
+    b.onclick=async()=>{try{connect(await api('ad/claim',{token:a.token}))}catch(e){err(e.message)}}}},1000)}catch(e){err(e.message)}}
+async function redeem(){try{err();connect(await api('voucher/redeem',{code:$('vc').value}))}catch(e){err(e.message)}}
+show();</script></body></html>

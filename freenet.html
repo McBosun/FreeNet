@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FreeNet – Sponsor-funded WiFi</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap">
+<style>
+:root{--bg:#eef4f1;--card:#fff;--tx:#10302f;--mu:#56706c;--ac:#0d7c66;--hi:#f2a900;--hit:#10302f;--bd:#d3e0db;--bad:#b42318;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1a19;--card:#13292a;--tx:#e8f3ef;--mu:#8fa9a4;--ac:#3fc4a5;--hi:#f2b823;--hit:#10302f;--bd:#234240;--bad:#ff8a7a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0c1a19;--card:#13292a;--tx:#e8f3ef;--mu:#8fa9a4;--ac:#3fc4a5;--hi:#f2b823;--hit:#10302f;--bd:#234240;--bad:#ff8a7a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 "Bricolage Grotesque",system-ui,sans-serif;min-height:100vh}
+.w{max-width:760px;margin:0 auto;padding:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0 14px}
+.logo{font-weight:800;font-size:22px;letter-spacing:-.5px}.logo i{font-style:normal;color:var(--hi)}
+nav{display:flex;gap:4px;background:var(--card);border:1px solid var(--bd);border-radius:999px;padding:4px}
+nav a{padding:7px 14px;border-radius:999px;color:var(--mu);text-decoration:none;font-weight:600;font-size:14px}
+nav a.on{background:var(--tx);color:var(--bg)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;margin-bottom:14px}
+h1{font-size:30px;line-height:1.1;margin:0 0 6px;letter-spacing:-1px;font-weight:800}
+h2{font-size:18px;margin:0 0 10px;font-weight:800}
+p{margin:0 0 10px}.mu{color:var(--mu);font-size:14px}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--bd);border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;margin:4px 0 10px}
+label{font-size:14px;font-weight:600}
+button{font:inherit;font-weight:700;border:0;border-radius:10px;padding:12px 16px;cursor:pointer;background:var(--ac);color:#fff}
+button.hi{background:var(--hi);color:var(--hit)}button.ghost{background:transparent;color:var(--tx);border:1px solid var(--bd)}
+button:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,a:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--hi);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 140px}
+.sig{display:flex;align-items:flex-end;gap:5px;height:56px;margin-bottom:8px}
+.sig b{width:12px;border-radius:3px;background:var(--bd)}.sig.on b{background:var(--ac)}
+.sig b:nth-child(1){height:25%}.sig b:nth-child(2){height:45%}.sig b:nth-child(3){height:65%}.sig b:nth-child(4){height:85%}.sig b:nth-child(5){height:100%}
+.big{font-size:46px;font-weight:800;letter-spacing:-2px;line-height:1}
+.bar{height:10px;border-radius:6px;background:var(--bd);overflow:hidden;margin:6px 0}.bar span{display:block;height:100%;background:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.st{background:var(--bg);border-radius:10px;padding:12px}.st b{display:block;font-size:22px}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.sc{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:14px}td,th{text-align:left;padding:8px 6px;border-bottom:1px solid var(--bd);white-space:nowrap}
+.ov{position:fixed;inset:0;background:rgba(5,15,14,.7);display:flex;align-items:center;justify-content:center;padding:16px;z-index:9}
+.ad{width:100%;max-width:420px;border-radius:16px;padding:24px;color:#fff}
+.ad h2{font-size:26px;letter-spacing:-.5px}
+#toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--tx);color:var(--bg);padding:10px 16px;border-radius:10px;font-weight:600;z-index:10;display:none;max-width:90%}
+.tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--hi);color:var(--hit)}
+</style></head><body>
+<div class="w">
+<header><div class="logo">Free<i>Net</i></div>
+<nav><a href="#portal" id="n-portal">Get online</a><a href="#sponsors" id="n-sponsors">Sponsors</a><a href="#admin" id="n-admin">Admin</a></nav></header>
+<main id="app"></main>
+</div>
+<div id="toast" role="status"></div>
+<script>
+const KEY='freenet-v1',AD_SECS=10,AD_MIN=30,MB_S=0.3,COST_MB=0.02;
+const PLANS=[{n:'Daily',m:1440,p:200},{n:'Weekly',m:10080,p:1000},{n:'Monthly',m:43200,p:3500}];
+let S={user:null,until:0,used:0,users:[],nextId:3,
+camps:[{id:1,brand:'Lagos Eats',msg:'Order jollof and suya delivered in 30 minutes.',cpv:50,budget:5000,views:0,color:'#0d7c66'},{id:2,brand:'Naija Telecom Deals',msg:'Top up ₦1,000 and get double airtime today.',cpv:50,budget:5000,views:0,color:'#b4480f'}],
+vouchers:[],stats:{views:0,revenue:0,cost:0,paid:0}};
+try{const r=localStorage.getItem(KEY);if(r)S=Object.assign(S,JSON.parse(r))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const N=n=>'₦'+Math.round(n).toLocaleString('en-NG');
+const online=()=>S.until>Date.now();
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3000)}
+function fmt(ms){const s=Math.max(0,Math.floor(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return(h?h+'h ':'')+String(m).padStart(h?2:1,'0')+'m '+String(s%60).padStart(2,'0')+'s'}
+function view(){return(location.hash||'#portal').slice(1)}
+function render(){
+const v=view();['portal','sponsors','admin'].forEach(k=>$('#n-'+k).classList.toggle('on',k===v));
+$('#app').innerHTML=v==='sponsors'?sponsors():v==='admin'?admin():portal();}
+function portal(){
+if(!S.user)return `<div class="card"><h1>Free WiFi, paid for by sponsors.</h1><p class="mu">Sign in with your phone number. Watch one short ad and browse with unlimited data for ${AD_MIN} minutes. Watch another to keep going.</p>
+<label for="ph">Phone number</label><input id="ph" type="tel" inputmode="tel" placeholder="0803 000 0000" autocomplete="tel">
+<button onclick="login()" style="width:100%">Sign in</button></div>`;
+const on=online();
+return `<div class="card"><div class="sig ${on?'on':''}"><b></b><b></b><b></b><b></b><b></b></div>
+<div class="big" id="clock">${on?fmt(S.until-Date.now()):'Offline'}</div>
+<p class="mu" id="stat">${on?'Connected. Unlimited data while your session runs.':'Watch a sponsor ad to get online.'} Signed in as ${esc(S.user)}.</p>
+<div class="bar"><span id="usebar" style="width:${Math.min(100,S.used/20)}%"></span></div>
+<p class="mu" id="use">${S.used.toFixed(0)} MB used this device</p>
+<div class="row"><button class="hi" onclick="showAd()">Watch ad, get ${AD_MIN} free minutes</button><button class="ghost" onclick="logout()">Sign out</button></div></div>
+<div class="card"><h2>Have a voucher?</h2><div class="row"><input id="vc" placeholder="FN-XXXXXX" autocapitalize="characters"><button onclick="redeem()" style="margin:4px 0 10px">Redeem</button></div></div>
+<div class="card"><h2>Skip the ads</h2><p class="mu">Paid plans keep the network running. Payment is simulated in this demo.</p>
+<div class="plans">${PLANS.map((p,i)=>`<div class="st"><b>${p.n}</b><span class="mu">${N(p.p)}, no ads</span><br><br><button onclick="buy(${i})" style="width:100%">Buy ${p.n.toLowerCase()}</button></div>`).join('')}</div></div>`}
+function sponsors(){
+return `<div class="card"><h1>Put your brand on every login.</h1><p class="mu">Fund free internet and reach people while they connect. You pay only when someone watches your full ad.</p>
+<label for="sb">Brand name</label><input id="sb" maxlength="40">
+<label for="sm">Ad message</label><textarea id="sm" rows="2" maxlength="100"></textarea>
+<div class="row"><div><label for="sc">Cost per view (min ₦20)</label><input id="sc" type="number" min="20" value="50"></div><div><label for="sbud">Budget (₦)</label><input id="sbud" type="number" min="500" value="5000"></div></div>
+<button onclick="addCamp()" style="width:100%">Launch campaign</button></div>
+<div class="card"><h2>Campaigns</h2><div class="sc"><table><tr><th>Brand</th><th>Per view</th><th>Views</th><th>Budget left</th><th></th></tr>
+${S.camps.map(c=>`<tr><td>${esc(c.brand)}</td><td>${N(c.cpv)}</td><td>${c.views}</td><td>${N(c.budget)}</td><td>${c.budget>=c.cpv?'<span class="tag">Live</span>':'<span class="mu">Paused</span>'} <button class="ghost" style="padding:4px 10px" onclick="topup(${c.id})">Add ₦1,000</button></td></tr>`).join('')}</table></div></div>`}
+function admin(){
+const st=S.stats,net=st.revenue+st.paid-st.cost;
+return `<div class="card"><h1>Network funding</h1><p class="mu">Sponsor revenue pays for bandwidth. Data cost assumes ${N(COST_MB*1000)} per GB.</p>
+<div class="grid"><div class="st"><b>${S.users.length}</b>Users</div><div class="st"><b>${st.views}</b>Ad views</div><div class="st"><b>${N(st.revenue)}</b>Sponsor revenue</div><div class="st"><b>${N(st.paid)}</b>Paid plans</div><div class="st"><b>${N(st.cost)}</b>Data cost</div><div class="st"><b style="color:${net>=0?'var(--ac)':'var(--bad)'}">${N(net)}</b>Net</div></div></div>
+<div class="card"><h2>Create vouchers</h2><div class="row"><div><label for="vm">Minutes each</label><input id="vm" type="number" min="5" value="60"></div><div><label for="vn">How many</label><input id="vn" type="number" min="1" max="50" value="5"></div></div><button onclick="genV()" style="width:100%">Generate codes</button></div>
+<div class="card"><h2>Vouchers</h2>${S.vouchers.length?`<div class="sc"><table><tr><th>Code</th><th>Minutes</th><th>Status</th></tr>${S.vouchers.slice().reverse().map(v=>`<tr><td>${v.code}</td><td>${v.min}</td><td>${v.used?'Used':'Available'}</td></tr>`).join('')}</table></div>`:'<p class="mu">No vouchers yet. Generate some to hand out at events or shops.</p>'}</div>
+<div class="card"><h2>Going live</h2><p class="mu">This is the portal, ad engine and dashboards. To hand out real internet, connect it to a MikroTik or OpenWISP hotspot with RADIUS so a claimed session unlocks the user’s device, and add Paystack or Flutterwave for paid plans.</p><button class="ghost" onclick="resetAll()">Reset demo data</button></div>`}
+function login(){const p=$('#ph').value.replace(/\s/g,'');if(!/^\+?\d{10,14}$/.test(p)){toast('Enter a valid phone number');return}
+S.user=p;if(!S.users.includes(p))S.users.push(p);save();render()}
+function logout(){S.user=null;S.until=0;save();render()}
+function addMin(m){S.until=Math.max(Date.now(),S.until)+m*60000;save()}
+let adT=null;
+function showAd(){
+const live=S.camps.filter(c=>c.budget>=c.cpv);
+if(!live.length){toast('No sponsored ads right now. Try a voucher or paid plan.');return}
+const c=live[S.stats.views%live.length];let left=AD_SECS;
+const o=document.createElement('div');o.className='ov';o.id='ov';
+o.innerHTML=`<div class="ad" style="background:${c.color}"><span class="tag">Sponsored</span><h2 style="margin-top:12px">${esc(c.brand)}</h2><p>${esc(c.msg)}</p><button id="claim" class="hi" disabled style="width:100%">Claim in ${left}s</button></div>`;
+document.body.appendChild(o);
+adT=setInterval(()=>{left--;const b=$('#claim');if(left>0){b.textContent='Claim in '+left+'s'}else{clearInterval(adT);b.disabled=false;b.textContent='Claim '+AD_MIN+' free minutes';b.onclick=()=>claim(c.id)}},1000)}
+function claim(id){const c=S.camps.find(x=>x.id===id);
+if(c&&c.budget>=c.cpv){c.budget-=c.cpv;c.views++;S.stats.views++;S.stats.revenue+=c.cpv}
+addMin(AD_MIN);$('#ov')?.remove();toast('You’re online for '+AD_MIN+' minutes');render()}
+function redeem(){const code=$('#vc').value.trim().toUpperCase(),v=S.vouchers.find(x=>x.code===code&&!x.used);
+if(!v){toast('Code not found or already used');return}v.used=true;addMin(v.min);toast('Added '+v.min+' minutes');render()}
+function buy(i){const p=PLANS[i];S.stats.paid+=p.p;addMin(p.m);toast(p.n+' plan active (demo payment)');render()}
+function addCamp(){const b=$('#sb').value.trim(),m=$('#sm').value.trim(),cpv=+$('#sc').value,bud=+$('#sbud').value;
+if(!b||!m){toast('Add a brand name and message');return}if(cpv<20||bud<cpv){toast('Check cost per view and budget');return}
+const cols=['#0d7c66','#b4480f','#3b5bdb','#7a2e8e','#1f6f8b'];
+S.camps.push({id:S.nextId++,brand:b,msg:m,cpv,budget:bud,views:0,color:cols[S.camps.length%cols.length]});save();toast('Campaign is live');render()}
+function topup(id){const c=S.camps.find(x=>x.id===id);c.budget+=1000;save();render()}
+function genV(){const m=+$('#vm').value,n=Math.min(50,+$('#vn').value);if(!(m>=5&&n>=1)){toast('Enter minutes and quantity');return}
+const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+for(let i=0;i<n;i++){let c='FN-';for(let j=0;j<6;j++)c+=A[Math.floor(Math.random()*A.length)];S.vouchers.push({code:c,min:m,used:false})}save();render()}
+function resetAll(){if(confirm('Clear all demo data?')){try{localStorage.removeItem(KEY)}catch(e){}location.reload()}}
+let tk=0;
+setInterval(()=>{if(S.user&&online()){S.used+=MB_S;S.stats.cost+=MB_S*COST_MB;if(++tk%5===0)save()}
+if(view()==='portal'&&S.user){const c=$('#clock');if(!c)return;
+if(online()){c.textContent=fmt(S.until-Date.now());$('#use').textContent=S.used.toFixed(0)+' MB used this device';$('#usebar').style.width=Math.min(100,S.used/20)+'%'}
+else if(c.textContent!=='Offline'){render()}}},1000);
+addEventListener('hashchange',render);render();
+</script></body></html>
