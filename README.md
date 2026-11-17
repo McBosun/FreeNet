@@ -16,7 +16,7 @@ The portal posts those to the MikroTik login URL, MikroTik asks FreeRADIUS, and 
 ## Admin
 `curl -H "x-admin-key: $ADMIN_KEY" https://PORTAL_HOST/api/admin/stats`
 `curl -X POST -H "x-admin-key: $ADMIN_KEY" -H "Content-Type: application/json" -d '{"minutes":60,"count":20}' https://PORTAL_HOST/api/admin/vouchers`
-Sponsor page: `/sponsor.html`.
+Admin page: `/admin.html` (sign in with ADMIN_KEY). Sponsor page: `/sponsor.html`.
 
 ## Before real users
 - Test the FreeRADIUS container first with `radtest` (the SQL module config targets the 3.2 image; check `docker compose logs radius`).
