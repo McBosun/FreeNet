@@ -16,7 +16,7 @@ The portal posts those to the MikroTik login URL, MikroTik asks FreeRADIUS, and 
 ## Admin
 `curl -H "x-admin-key: $ADMIN_KEY" https://PORTAL_HOST/api/admin/stats`
 `curl -X POST -H "x-admin-key: $ADMIN_KEY" -H "Content-Type: application/json" -d '{"minutes":60,"count":20}' https://PORTAL_HOST/api/admin/vouchers`
-Admin page: `/admin.html`. First visit shows **Sign up**: create the super admin account (name, password, phone number) using ADMIN_KEY as the one-time setup code. After that the page shows **Sign in**: password first, then phone number. Sponsor page: `/sponsor.html`.
+Admin page: `/admin.html`. First visit shows **Sign up** (phone number with country code, name, password, and ADMIN_KEY as the one-time setup code). After that it shows **Sign in**: password first, then phone number. Always open these pages from your running backend (http://SERVER_IP:3000/…), never from GitHub or a saved file.
 
 ## Before real users
 - Test the FreeRADIUS container first with `radtest` (the SQL module config targets the 3.2 image; check `docker compose logs radius`).
