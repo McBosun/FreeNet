@@ -6,11 +6,15 @@ const PLANS={daily:{m:1440,p:200},weekly:{m:10080,p:1000},monthly:{m:43200,p:350
 const app=express();
 app.use(express.json({verify:(q,_s,b)=>{q.raw=b}}));
 app.use(express.static('public'));
+// Pages: served from public/ if present, otherwise from the repo root (works if files were uploaded loose)
+const path=require('path'),fs=require('fs');
+for(const f of ['index.html','admin.html','sponsor.html'])app.get(f==='index.html'?['/','/index.html']:'/'+f,(q,s)=>{
+  const p=[path.join(__dirname,'public',f),path.join(__dirname,f)].find(fs.existsSync);p?s.sendFile(p):s.status(404).send('Missing '+f)});
 const wrap=f=>(q,s)=>f(q,s).catch(e=>{console.error(e);s.status(500).json({error:'Server error'})});
 const sign=o=>jwt.sign(o,JWT_SECRET,{expiresIn:'30d'});
 const auth=kind=>(q,s,n)=>{try{const t=jwt.verify((q.headers.authorization||'').slice(7),JWT_SECRET);if(t.kind!==kind)throw 0;q.auth=t;n()}catch{s.status(401).json({error:'Sign in first'})}};
 const admin=(q,s,n)=>ADMIN_KEY&&q.headers['x-admin-key']===ADMIN_KEY?n():auth('admin')(q,s,n);
-(async()=>{await db.query('CREATE TABLE IF NOT EXISTS admins(id serial PRIMARY KEY, phone text UNIQUE, pass_hash text NOT NULL, name text NOT NULL, email text)');
+(async()=>{await db.query(require('fs').readFileSync(__dirname+'/schema.sql','utf8'));await db.query('CREATE TABLE IF NOT EXISTS admins(id serial PRIMARY KEY, phone text UNIQUE, pass_hash text NOT NULL, name text NOT NULL, email text)');
   await db.query('ALTER TABLE admins ADD COLUMN IF NOT EXISTS phone text UNIQUE');await db.query('ALTER TABLE admins ALTER COLUMN email DROP NOT NULL')})().catch(console.error);
 
 // Extend a user's access and sync it to FreeRADIUS. Returns the one-time hotspot password.
