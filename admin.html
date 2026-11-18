@@ -8,9 +8,9 @@ button{background:#0d7c66;color:#fff;border:0;font-weight:700;cursor:pointer}#er
 pre{white-space:pre-wrap;background:#eef4f1;padding:10px;border-radius:10px}.mu{font-size:14px;color:#56706c}</style></head><body>
 <h1>FreeNet Admin</h1><p id="err" role="alert"></p>
 <div class="c" id="up" hidden><h2>Create the super admin account</h2><p class="mu">First-time setup. Enter the ADMIN_KEY from your server’s .env file as the setup code.</p>
-<input id="nm" placeholder="Your name"><input id="em" type="email" placeholder="Email"><input id="pw" type="password" placeholder="Password (8+ characters)"><input id="sc" type="password" placeholder="Setup code (ADMIN_KEY)">
+<input id="nm" placeholder="Your name"><input id="pw" type="password" placeholder="Password (8+ characters)" autocomplete="new-password"><input id="em" type="tel" placeholder="Phone number" autocomplete="tel"><input id="sc" type="password" placeholder="Setup code (ADMIN_KEY)">
 <button onclick="auth('register')">Sign up</button></div>
-<div class="c" id="in" hidden><h2>Admin sign in</h2><input id="em2" type="email" placeholder="Email"><input id="pw2" type="password" placeholder="Password"><button onclick="auth('login')">Sign in</button></div>
+<div class="c" id="in" hidden><h2>Admin sign in</h2><input id="pw2" type="password" placeholder="Password" autocomplete="current-password"><input id="em2" type="tel" placeholder="Phone number" autocomplete="tel"><button onclick="auth('login')">Sign in</button></div>
 <div id="dash" hidden><div class="c"><h2>Network</h2><div class="g" id="st"></div></div>
 <div class="c"><h2>Create vouchers</h2><input id="vm" type="number" value="60" aria-label="Minutes each"><input id="vn" type="number" value="5" aria-label="How many"><button onclick="gen()">Generate codes</button><pre id="out" hidden></pre></div>
 <button onclick="sessionStorage.removeItem('a');location.reload()">Sign out</button></div>
@@ -19,7 +19,7 @@ let T=sessionStorage.getItem('a')||'';const $=i=>document.getElementById(i),err=
 async function api(p,b){const r=await fetch('/api/admin/'+p,{method:b?'POST':'GET',headers:{'Content-Type':'application/json',Authorization:'Bearer '+T},body:b?JSON.stringify(b):undefined});
   const j=await r.json();if(!r.ok)throw new Error(j.error||'Something went wrong');return j}
 async function init(){try{if(T){await load();return}const s=await api('status');$('up').hidden=s.hasAdmin;$('in').hidden=!s.hasAdmin}catch(e){err(e.message)}}
-async function auth(k){try{err();const b=k==='register'?{name:$('nm').value,email:$('em').value,password:$('pw').value,setup_code:$('sc').value}:{email:$('em2').value,password:$('pw2').value};
+async function auth(k){try{err();const b=k==='register'?{name:$('nm').value,password:$('pw').value,phone:$('em').value,setup_code:$('sc').value}:{password:$('pw2').value,phone:$('em2').value};
   const j=await api(k,b);T=j.token;sessionStorage.setItem('a',T);await load()}catch(e){err(e.message)}}
 async function load(){try{const s=await api('stats');$('up').hidden=$('in').hidden=true;$('dash').hidden=false;
   const L={users:'Users',ad_views:'Ad views',sponsor_revenue:'Sponsor revenue (₦)',plan_revenue:'Plan revenue (₦)',open_vouchers:'Unused vouchers'};
