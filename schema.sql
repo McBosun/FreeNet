@@ -1,4 +1,5 @@
 CREATE TABLE IF NOT EXISTS users(phone text PRIMARY KEY, access_until timestamptz, created_at timestamptz DEFAULT now());
+CREATE TABLE IF NOT EXISTS admins(id serial PRIMARY KEY, email text UNIQUE NOT NULL, pass_hash text NOT NULL, name text NOT NULL);
 CREATE TABLE IF NOT EXISTS sponsors(id serial PRIMARY KEY, email text UNIQUE NOT NULL, pass_hash text NOT NULL, name text NOT NULL);
 CREATE TABLE IF NOT EXISTS campaigns(id serial PRIMARY KEY, sponsor_id int REFERENCES sponsors(id), brand text NOT NULL, msg text NOT NULL,
   video_url text, cpv int NOT NULL CHECK(cpv>=20), budget int NOT NULL DEFAULT 0, views int NOT NULL DEFAULT 0, active boolean DEFAULT true);

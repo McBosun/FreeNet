@@ -9,7 +9,8 @@ app.use(express.static('public'));
 const wrap=f=>(q,s)=>f(q,s).catch(e=>{console.error(e);s.status(500).json({error:'Server error'})});
 const sign=o=>jwt.sign(o,JWT_SECRET,{expiresIn:'30d'});
 const auth=kind=>(q,s,n)=>{try{const t=jwt.verify((q.headers.authorization||'').slice(7),JWT_SECRET);if(t.kind!==kind)throw 0;q.auth=t;n()}catch{s.status(401).json({error:'Sign in first'})}};
-const admin=(q,s,n)=>q.headers['x-admin-key']===ADMIN_KEY&&ADMIN_KEY?n():s.status(401).json({error:'Admin key required'});
+const admin=(q,s,n)=>ADMIN_KEY&&q.headers['x-admin-key']===ADMIN_KEY?n():auth('admin')(q,s,n);
+db.query('CREATE TABLE IF NOT EXISTS admins(id serial PRIMARY KEY, email text UNIQUE NOT NULL, pass_hash text NOT NULL, name text NOT NULL)').catch(console.error);
 
 // Extend a user's access and sync it to FreeRADIUS. Returns the one-time hotspot password.
 async function grant(phone,minutes,cx=db){
@@ -76,6 +77,17 @@ app.post('/api/pay/webhook',wrap(async(q,s)=>{
   s.sendStatus(200)}));
 
 // ---- Admin
+// ---- Admin accounts: first sign-up needs the setup code (ADMIN_KEY); later admins must be added by a signed-in admin
+app.get('/api/admin/status',wrap(async(q,s)=>s.json({hasAdmin:(await db.query('SELECT 1 FROM admins LIMIT 1')).rowCount>0})));
+app.post('/api/admin/register',wrap(async(q,s)=>{const {name,email,password,setup_code}=q.body;
+  if(!name||!email||String(password||'').length<8)return s.status(400).json({error:'Name, email and an 8+ character password are required'});
+  const first=(await db.query('SELECT 1 FROM admins LIMIT 1')).rowCount===0;
+  if(first){if(!ADMIN_KEY||setup_code!==ADMIN_KEY)return s.status(401).json({error:'Wrong setup code'})}
+  else{try{if(jwt.verify((q.headers.authorization||'').slice(7),JWT_SECRET).kind!=='admin')throw 0}catch{return s.status(401).json({error:'Only a signed-in admin can add admins'})}}
+  try{const {rows:[r]}=await db.query('INSERT INTO admins(email,pass_hash,name) VALUES($1,$2,$3) RETURNING id',[email.toLowerCase(),await bcrypt.hash(password,10),name]);s.json({token:sign({kind:'admin',id:r.id})})}
+  catch{s.status(409).json({error:'Email already registered'})}}));
+app.post('/api/admin/login',wrap(async(q,s)=>{const {rows:[r]}=await db.query('SELECT * FROM admins WHERE email=$1',[String(q.body.email||'').toLowerCase()]);
+  if(!r||!await bcrypt.compare(String(q.body.password||''),r.pass_hash))return s.status(401).json({error:'Wrong email or password'});s.json({token:sign({kind:'admin',id:r.id})})}));
 app.get('/api/admin/stats',admin,wrap(async(q,s)=>{const r=await db.query(`SELECT
  (SELECT count(*) FROM users) users,(SELECT count(*) FROM ad_sessions WHERE claimed) ad_views,
  (SELECT coalesce(sum(cpv),0) FROM ad_sessions WHERE claimed) sponsor_revenue,
